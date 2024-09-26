@@ -1,0 +1,32 @@
+src := $(obj)
+
+.PHONY: __all
+__all:
+
+obj-y :=
+subdir-y :=
+real-obj-y :=
+
+include $(srctree)/$(src)/Makefile
+
+subdir-y := $(patsubst %/, %, $(filter %/, $(obj-y)))
+real-obj-y := $(filter-out %/, $(obj-y))
+
+targets := $(addprefix $(objtree)/$(src)/, $(real-obj-y))
+builtins := $(addprefix $(objtree)/$(src)/, $(addsuffix /builtin.a, $(subdir-y)))
+
+__all: $(builtins) $(targets)
+	$(AR) rcvf $(objtree)/$(src)/builtin.a $^
+
+$(objtree)/$(src)/%/builtin.a: %
+	$(MAKE) -f $(srctree)/scripts/Makefile.build obj=$(src)/$<
+
+.PHONY: $(subdir-y)
+$(subdir-y):	
+
+$(objtree)/%.o: %.c
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -MM -MT $@ $< -o $@.d
+	$(CC) $(CFLAGS) -c $< -o $@
+
+-include $(targets:%=%.d)
