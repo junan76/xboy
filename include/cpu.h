@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-enum FlagBits
+enum FlagBit
 {
-    c = (1 << 4), /* carry flag */
-    h = (1 << 5), /* half carray flag */
-    n = (1 << 6), /* subtraction flag */
-    z = (1 << 7), /* zero flag */
+    flag_bit_c = (1 << 4), /* carry flag */
+    flag_bit_h = (1 << 5), /* half carray flag */
+    flag_bit_n = (1 << 6), /* subtraction flag */
+    flag_bit_z = (1 << 7), /* zero flag */
 };
 
 struct Registers
@@ -18,7 +18,7 @@ struct Registers
         uint16_t af;
         struct
         {
-            uint8_t __padding;
+            uint8_t flags;
             uint8_t a;
         };
     };
@@ -49,23 +49,16 @@ struct Registers
             uint8_t h;
         };
     };
-    uint8_t flags;
     uint16_t sp;
     uint16_t pc;
-};
-
-struct CpuOps
-{
-    struct Instruction *(*fetch)(void);
-    void (*execute)(void);
 };
 
 struct Cpu
 {
     struct Registers regs;
     struct MemMap *mm;
-
-    struct CpuOps *ops;
 };
+
+int cpu_step();
 
 #endif
