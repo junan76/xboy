@@ -2,6 +2,10 @@
 
 int main(int argc, char const *argv[])
 {
-    cpu_step();
+    int n = 7;
+    while (n--)
+    {
+        cpu_step();
+    }
     return 0;
 }

@@ -7,7 +7,7 @@
 
 static int exec_inst_nop(struct Instruction *inst, struct Cpu *cpu)
 {
-    printf("NOP executed\n");
+    printf("Instruction: nop\n");
     cpu->regs.pc++;
     return 0;
 }

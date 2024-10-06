@@ -19,7 +19,16 @@ static int cpu_execute_instruction(struct Instruction *inst)
 }
 
 static struct Cpu cpu = {
-    .regs.pc = 0x100,
+    .regs = {
+        .a = 0,
+        .b = 0,
+        .c = 1,
+        .d = 2,
+        .e = 3,
+        .h = 4,
+        .l = 5,
+        .pc = 0x100,
+    },
 };
 
 int cpu_step()
