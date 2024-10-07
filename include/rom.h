@@ -37,6 +37,7 @@ struct CartHeader
     uint8_t global_chechsum;
 };
 
-int rom_valid_cart(const struct CartHeader *ch);
+struct CartHeader *rom_load_cart(const char *rom_file);
+int rom_check_cart(const struct CartHeader *ch);
 
 #endif

@@ -4,7 +4,7 @@ export srctree := $(shell pwd)
 export objtree := $(srctree)/build
 export CFLAGS := -g -I$(srctree)/include
 
-subdir-y := init cpu insts
+subdir-y := init cpu insts rom
 builtins := $(addprefix $(objtree)/, $(addsuffix /builtin.a, $(subdir-y)))
 
 .PHONY: __all
