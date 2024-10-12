@@ -74,6 +74,7 @@ struct cartridge
 
     void *ram;
     void *ram_bank0;
+    uint8_t ram_enabled;
 
     uint8_t n_rom_bank;
     uint8_t n_ram_bank;
@@ -100,6 +101,12 @@ void cart_rom_write(uint16_t addr, uint8_t data)
 
 uint8_t cart_ram_read(uint16_t addr)
 {
+    if (!cart.ram_enabled)
+    {
+        // TODO: error logging
+        return 0xFF;
+    }
+
     if (addr >= CART_RAM_BANK0_START && addr <= CART_RAM_BANK0_END)
         return ((uint8_t *)cart.ram_bank0)[addr - CART_RAM_BANK0_START];
     else
@@ -192,6 +199,7 @@ int cart_init(void *rom_data, int rom_size, void *ram_data, int ram_size)
     else
         cart.rom_bank1 = NULL;
 
+    cart.ram_enabled = 0;
     cart.ram_bank0 = cart.ram;
 
     // TODO: print cartridge information
