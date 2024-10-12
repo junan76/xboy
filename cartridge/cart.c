@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include <xboy.h>
+
 /**
  * Memory map:
  * 0x0000 - 0x3FFF ROM Bank 0 (16KB)
@@ -90,7 +92,7 @@ uint8_t cart_rom_read(uint16_t addr)
         return ((uint8_t *)cart.rom_bank1)[addr - CART_ROM_BANK1_START];
     else
     {
-        // TODO:  error logging
+        log_warn("%s: read invalid cart rom addr=0x%x", __func__, addr);
         return 0xFF;
     }
 }
@@ -103,7 +105,7 @@ uint8_t cart_ram_read(uint16_t addr)
 {
     if (!cart.ram_enabled)
     {
-        // TODO: error logging
+        log_warn("%s: cart ram NOT enabled, addr=0x%x", addr);
         return 0xFF;
     }
 
@@ -111,7 +113,7 @@ uint8_t cart_ram_read(uint16_t addr)
         return ((uint8_t *)cart.ram_bank0)[addr - CART_RAM_BANK0_START];
     else
     {
-        // TODO:  error logging
+        log_warn("%s: read invalid cart ram addr=0x%x", __func__, addr);
         return 0xFF;
     }
 }
@@ -122,7 +124,7 @@ void cart_ram_write(uint16_t addr, uint8_t data)
         ((uint8_t *)cart.ram_bank0)[addr - CART_RAM_BANK0_START] = data;
     else
     {
-        // TODO:  error logging
+        log_warn("%s: write to invalid cart ram addr=0x%x", addr);
     }
 }
 
@@ -151,15 +153,18 @@ int cart_init(void *rom_data, int rom_size, void *ram_data, int ram_size)
     struct cart_header *header = (struct cart_header *)(rom_data + 0x100);
     if (!cart_header_checksum_ok(header))
     {
-        // TODO: error logging
+        log_err("%s: invalid cart checksum", __func__);
         return -1;
     }
 
     /* Check rom_size and ram_size based on MBC type. */
     uint32_t rom_size_expected = 32 * 1024 * (1 << header->rom_size);
-    uint32_t ram_size_expected = 0;
+    uint32_t ram_size_expected;
     switch (header->ram_size)
     {
+    case 0x00:
+        ram_size_expected = 0;
+        break;
     case 0x02:
         ram_size_expected = 8 * 1024;
         break;
@@ -174,13 +179,14 @@ int cart_init(void *rom_data, int rom_size, void *ram_data, int ram_size)
         break;
     case 0x01:
     default:
-        // TODO: error logging
+        log_err("%s: header ram size(0x%x) not supported", __func__, header->ram_size);
         return -1;
     }
 
     if (rom_size != rom_size_expected || ram_size != ram_size_expected)
     {
-        // TODO: error logging
+        log_err("%s: rom_size=%d, rom_size_expected=%d", __func__, rom_size, rom_size_expected);
+        log_err("%s: ram_size=%d, ram_size_expected=%d", __func__, ram_size, ram_size_expected);
         return -1;
     }
 
@@ -202,6 +208,11 @@ int cart_init(void *rom_data, int rom_size, void *ram_data, int ram_size)
     cart.ram_enabled = 0;
     cart.ram_bank0 = cart.ram;
 
-    // TODO: print cartridge information
+    log_info("%s: done!\n"
+             "Title: %s\n"
+             "ROM bank num: %d\n"
+             "RAM bank num: %d\n"
+             "Checksum: 0x%x",
+             __func__, header->title, cart.n_rom_bank, cart.n_ram_bank, header->checksum);
     return 0;
 }
