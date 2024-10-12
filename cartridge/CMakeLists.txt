@@ -1,0 +1,1 @@
+add_library(cartridge STATIC cart.c)
