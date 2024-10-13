@@ -14,6 +14,10 @@ uint8_t cart_ram_read(uint16_t addr);
 void cart_ram_write(uint16_t addr, uint8_t data);
 
 /**
+ * CPU
+ */
+
+/**
  * Logger
  */
 enum log_level

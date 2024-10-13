@@ -1,39 +1,64 @@
 #include <stdio.h>
+#include <stdint.h>
 
-#include <cpu.h>
-#include <insts.h>
-
-static struct Cpu cpu;
-
-static struct Instruction *cpu_fetch_instruction()
+struct registers
 {
-    return parse_next_instruction(cpu.regs.pc);
-}
+    union
+    {
+        struct
+        {
+            union
+            {
+                uint8_t f;
+                struct
+                {
+                    int __padding : 4;
+                    int c_flag : 1;
+                    int h_flag : 1;
+                    int n_flag : 1;
+                    int z_flag : 1;
+                };
+            };
+            uint8_t a;
+        };
+        uint16_t af;
+    };
 
-static int cpu_execute_instruction(struct Instruction *inst)
-{
-    if (inst == NULL)
-        return -1;
+    union
+    {
+        struct
+        {
+            uint8_t c;
+            uint8_t b;
+        };
+        uint16_t bc;
+    };
 
-    return inst->execute(inst, &cpu);
-}
+    union
+    {
+        struct
+        {
+            uint8_t e;
+            uint8_t d;
+        };
+        uint16_t de;
+    };
 
-static struct Cpu cpu = {
-    .regs = {
-        .a = 0,
-        .b = 0,
-        .c = 1,
-        .d = 2,
-        .e = 3,
-        .h = 4,
-        .l = 5,
-        .pc = 0x100,
-    },
+    union
+    {
+        struct
+        {
+            uint8_t l;
+            uint8_t h;
+        };
+        uint16_t hl;
+    };
+
+    uint16_t sp;
+    uint16_t pc;
 };
 
-int cpu_step()
+struct CPU
 {
-    struct Instruction *inst = cpu_fetch_instruction();
-    cpu_execute_instruction(inst);
-    return 0;
-}
+    struct registers regs;
+};
