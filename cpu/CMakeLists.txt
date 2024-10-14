@@ -1,2 +1,2 @@
-add_library(cpu STATIC cpu.c misc.c)
+add_library(cpu SHARED cpu.c misc.c load.c)
 target_include_directories(cpu PRIVATE ../include)
