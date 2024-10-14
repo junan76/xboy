@@ -7,5 +7,4 @@ add_subdirectory(cpu)
 add_subdirectory(bus)
 add_subdirectory(utils)
 
-# target_include_directories(xboy PRIVATE include)
 target_link_libraries(xboy PRIVATE cart cpu bus utils)
