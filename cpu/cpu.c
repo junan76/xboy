@@ -1,64 +1,52 @@
-#include <stdio.h>
-#include <stdint.h>
+#include <xboy.h>
+#include "cpu-internal.h"
 
-struct registers
+uint8_t read_byte_by_pc()
 {
-    union
-    {
-        struct
-        {
-            union
-            {
-                uint8_t f;
-                struct
-                {
-                    int __padding : 4;
-                    int c_flag : 1;
-                    int h_flag : 1;
-                    int n_flag : 1;
-                    int z_flag : 1;
-                };
-            };
-            uint8_t a;
-        };
-        uint16_t af;
-    };
+    uint16_t *pc = reg(pc);
+    uint8_t result = bus_read(*pc);
+    *pc += 1;
+    return result;
+}
 
-    union
-    {
-        struct
-        {
-            uint8_t c;
-            uint8_t b;
-        };
-        uint16_t bc;
-    };
-
-    union
-    {
-        struct
-        {
-            uint8_t e;
-            uint8_t d;
-        };
-        uint16_t de;
-    };
-
-    union
-    {
-        struct
-        {
-            uint8_t l;
-            uint8_t h;
-        };
-        uint16_t hl;
-    };
-
-    uint16_t sp;
-    uint16_t pc;
-};
-
-struct CPU
+uint16_t read_word_by_pc()
 {
-    struct registers regs;
-};
+}
+
+static void handle_interrupts()
+{
+}
+
+static void execute_instruction(uint8_t opcode)
+{
+    opcode_fn fn = opcode_table[opcode];
+    fn(opcode);
+}
+
+static void opcode_default(uint8_t opcode)
+{
+    log_err("unimplemented opcode: %x", opcode);
+}
+
+int cpu_step()
+{
+
+    handle_interrupts();
+
+    uint8_t opcode = read_byte_by_pc();
+    execute_instruction(opcode);
+}
+
+int cpu_init()
+{
+    /*Registers init.*/
+    reg_value(pc) = 0x100;
+
+    /*Instructions init.*/
+    misc_init();
+
+    return 0;
+}
+
+struct CPU cpu;
+opcode_fn opcode_table[256];

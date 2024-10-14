@@ -3,21 +3,6 @@
 
 #include <xboy.h>
 
-/**
- * Memory map:
- * 0x0000 - 0x3FFF ROM Bank 0 (16KB)
- * 0x4000 - 0x7FFF ROM Bank 1-N (16KB)
- * 0xA000 - 0xBFFF External RAM from cartridge (if present) (8KB)
- *
- */
-
-#define CART_ROM_BANK0_START 0x0000
-#define CART_ROM_BANK0_END 0x3FFF
-#define CART_ROM_BANK1_START 0x4000
-#define CART_ROM_BANK1_END 0x7FFF
-#define CART_RAM_BANK0_START 0xA000
-#define CART_RAM_BANK0_END 0xBFFF
-
 #define CART_ROM_BANK_SIZE 0x4000
 #define CART_RAM_BANK_SIZE 0x2000
 
@@ -86,10 +71,14 @@ static struct cartridge cart;
 
 uint8_t cart_rom_read(uint16_t addr)
 {
-    if (addr >= CART_ROM_BANK0_START && addr <= CART_ROM_BANK0_END)
-        return ((uint8_t *)cart.rom_bank0)[addr - CART_ROM_BANK0_START];
-    else if (addr >= CART_ROM_BANK1_START && addr <= CART_ROM_BANK1_END)
-        return ((uint8_t *)cart.rom_bank1)[addr - CART_ROM_BANK1_START];
+    if (in_range(addr, ROM_BANK0_BASE, ROM_BANK1_BASE))
+    {
+        return ((uint8_t *)cart.rom_bank0)[addr - ROM_BANK0_BASE];
+    }
+    else if (in_range(addr, ROM_BANK1_BASE, VRAM_BASE))
+    {
+        return ((uint8_t *)cart.rom_bank1)[addr - ROM_BANK1_BASE];
+    }
     else
     {
         log_warn("%s: read invalid cart rom addr=0x%x", __func__, addr);
@@ -109,8 +98,8 @@ uint8_t cart_ram_read(uint16_t addr)
         return 0xFF;
     }
 
-    if (addr >= CART_RAM_BANK0_START && addr <= CART_RAM_BANK0_END)
-        return ((uint8_t *)cart.ram_bank0)[addr - CART_RAM_BANK0_START];
+    if (in_range(addr, EXRAM_BASE, WRAM0_BASE))
+        return ((uint8_t *)cart.ram_bank0)[addr - EXRAM_BASE];
     else
     {
         log_warn("%s: read invalid cart ram addr=0x%x", __func__, addr);
@@ -120,8 +109,8 @@ uint8_t cart_ram_read(uint16_t addr)
 
 void cart_ram_write(uint16_t addr, uint8_t data)
 {
-    if (addr >= CART_RAM_BANK0_START && addr <= CART_RAM_BANK0_END)
-        ((uint8_t *)cart.ram_bank0)[addr - CART_RAM_BANK0_START] = data;
+    if (in_range(addr, EXRAM_BASE, WRAM0_BASE))
+        ((uint8_t *)cart.ram_bank0)[addr - EXRAM_BASE] = data;
     else
     {
         log_warn("%s: write to invalid cart ram addr=0x%x", addr);
