@@ -98,6 +98,8 @@ struct CPU
             };
         } iflag;
     } interrupts;
+
+    uint8_t halted;
 };
 
 extern struct CPU cpu;
@@ -106,6 +108,7 @@ extern struct CPU cpu;
 
 typedef void (*opcode_fn)(uint8_t opcode);
 extern opcode_fn opcode_table[256];
+extern opcode_fn opcode_cb_table[256];
 
 uint8_t read_byte_by_pc();
 uint16_t read_word_by_pc();

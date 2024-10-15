@@ -47,8 +47,9 @@ static void opcode_default(uint8_t opcode)
 
 int cpu_step()
 {
-
     handle_interrupts();
+    if (cpu.halted)
+        return 0;
 
     uint8_t opcode = read_byte_by_pc();
     execute_instruction(opcode);
@@ -67,3 +68,6 @@ int cpu_init()
 
 struct CPU cpu;
 opcode_fn opcode_table[256];
+opcode_fn opcode_cb_table[256];
+uint8_t cycles_table[256];
+uint8_t cycles_cb_table[256];
