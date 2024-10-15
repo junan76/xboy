@@ -64,6 +64,40 @@ struct registers
 struct CPU
 {
     struct registers regs;
+
+    struct
+    {
+        /*Interrupt master enable flag, internal to the CPU*/
+        uint8_t ime;
+
+        /*Interrupt enable register, address 0xFFFF*/
+        union
+        {
+            uint8_t val;
+            struct
+            {
+                uint8_t vblank : 1;
+                uint8_t lcd : 1;
+                uint8_t timer : 1;
+                uint8_t serial : 1;
+                uint8_t joypad : 1;
+            };
+        } ie;
+
+        /*Interrupt flag register, address 0xFF0F*/
+        union
+        {
+            uint8_t val;
+            struct
+            {
+                uint8_t vblank : 1;
+                uint8_t lcd : 1;
+                uint8_t timer : 1;
+                uint8_t serial : 1;
+                uint8_t joypad : 1;
+            };
+        } iflag;
+    } interrupts;
 };
 
 extern struct CPU cpu;
@@ -76,15 +110,13 @@ extern opcode_fn opcode_table[256];
 uint8_t read_byte_by_pc();
 uint16_t read_word_by_pc();
 
-#define __register_opcode_table(_opcode)                                   \
+#define register_opcode_table(_opcode)                                     \
     __attribute__((constructor)) static void opcode_##_opcode##_init(void) \
     {                                                                      \
         opcode_table[_opcode] = opcode_##_opcode;                          \
     }
 
-/**
- * Instruction block initialization.
- */
-void misc_init();
+#define carry_on_bit(bit, a, b) \
+    ((a) + (b) & (1 << (bit) + 1) - 1) < ((a) & (1 << (bit) + 1) - 1)
 
 #endif

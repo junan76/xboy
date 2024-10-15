@@ -49,9 +49,6 @@ int cpu_init()
     /*Registers init.*/
     reg_value(pc) = 0x100;
 
-    /*Instructions init.*/
-    misc_init();
-
     return 0;
 }
 
