@@ -20,6 +20,16 @@ uint16_t read_word_by_pc()
     return result;
 }
 
+uint8_t cpu_read_ie()
+{
+    return cpu.interrupts.ie.val;
+}
+
+void cpu_write_ie(uint8_t value)
+{
+    cpu.interrupts.ie.val = value;
+}
+
 static void handle_interrupts()
 {
 }
@@ -48,6 +58,9 @@ int cpu_init()
 {
     /*Registers init.*/
     reg_value(pc) = 0x100;
+
+    /*IME is unset by default.*/
+    cpu.interrupts.ime = 0;
 
     return 0;
 }

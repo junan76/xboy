@@ -106,11 +106,11 @@ uint8_t bus_read(uint16_t addr)
     }
     else if (in_range(addr, HRAM_BASE, IE_REG_BASE))
     {
-        // TODO: read hram
+        return hram_read(addr);
     }
-    else if (addr = IE_REG_BASE)
+    else if (addr == IE_REG_BASE)
     {
-        // TODO: interrupt enable register
+        return cpu_read_ie();
     }
     else
     {
@@ -151,11 +151,11 @@ void bus_write(uint16_t addr, uint8_t value)
     }
     else if (in_range(addr, HRAM_BASE, IE_REG_BASE))
     {
-        // TODO: read hram
+        hram_write(addr, value);
     }
-    else if (addr = IE_REG_BASE)
+    else if (addr == IE_REG_BASE)
     {
-        // TODO: interrupt enable register
+        cpu_write_ie(value);
     }
     else
     {
