@@ -76,6 +76,12 @@ extern opcode_fn opcode_table[256];
 uint8_t read_byte_by_pc();
 uint16_t read_word_by_pc();
 
+#define __register_opcode_table(_opcode)                                   \
+    __attribute__((constructor)) static void opcode_##_opcode##_init(void) \
+    {                                                                      \
+        opcode_table[_opcode] = opcode_##_opcode;                          \
+    }
+
 /**
  * Instruction block initialization.
  */

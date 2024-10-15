@@ -1,12 +1,6 @@
 #include <xboy.h>
 #include "cpu-internal.h"
 
-#define __register_opcode_table(_opcode)                                   \
-    __attribute__((constructor)) static void opcode_##_opcode##_init(void) \
-    {                                                                      \
-        opcode_table[_opcode] = opcode_##_opcode;                          \
-    }
-
 /**
  * ld r8, r8
  */
@@ -383,67 +377,3 @@ LD_A_MEMHLD(0x3a)
     __register_opcode_table(_opcode)
 
 LD_A_MEMHLI(0x2a)
-
-/**
- * ld sp, n16
- * cycles: 3
- * bytes: 3
- */
-#define LD_SP_N16(_opcode)                    \
-    void opcode_##_opcode(uint8_t opcode)     \
-    {                                         \
-        uint16_t __value = read_word_by_pc(); \
-        reg_value(sp) = __value;              \
-    }                                         \
-    __register_opcode_table(_opcode)
-
-LD_SP_N16(0x31)
-
-/**
- * ld [n16], sp
- * cycles: 5
- * bytes: 3
- */
-#define LD_MEMN16_SP(_opcode)                         \
-    void opcode_##_opcode(uint8_t opcode)             \
-    {                                                 \
-        uint16_t __addr = read_word_by_pc();          \
-        uint16_t __value = reg_value(sp);             \
-        bus_write(__addr, __value & 0xff);            \
-        bus_write(__addr + 1, (__value >> 8) & 0xff); \
-    }                                                 \
-    __register_opcode_table(_opcode)
-
-LD_MEMN16_SP(0x08)
-
-/**
- * ld hl, sp+e8
- * cycles: 3
- * bytes: 2
- * TODO: handle carry and half_carry flag
- */
-#define LD_HL_SPE8(_opcode)               \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        int8_t __e8 = read_byte_by_pc();  \
-        uint16_t *__rd = reg(hl);         \
-        uint16_t __value = 0;             \
-        *__rd = __value;                  \
-    }                                     \
-    __register_opcode_table(_opcode)
-
-LD_HL_SPE8(0xf8)
-
-/**
- * ld sp, hl
- * cycles: 2
- * bytes: 1
- */
-#define LD_SP_HL(_opcode)                 \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        reg_value(sp) = reg_value(hl);    \
-    }                                     \
-    __register_opcode_table(_opcode)
-
-LD_SP_HL(0xf9)
