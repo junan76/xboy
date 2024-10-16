@@ -119,6 +119,12 @@ uint16_t read_word_by_pc();
         opcode_table[_opcode] = opcode_##_opcode;                          \
     }
 
+#define register_opcode_cb_table(_opcode)                                     \
+    __attribute__((constructor)) static void opcode_cb_##_opcode##_init(void) \
+    {                                                                         \
+        opcode_cb_table[_opcode] = opcode_cb_##_opcode;                       \
+    }
+
 #define carry_on_bit(bit, a, b) \
     ((a) + (b) & (1 << (bit) + 1) - 1) < ((a) & (1 << (bit) + 1) - 1)
 
