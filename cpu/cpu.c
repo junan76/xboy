@@ -1,6 +1,15 @@
 #include <xboy.h>
 #include "cpu-internal.h"
 
+enum irq_vec
+{
+    irq_vec_vblank = 0x40,
+    irq_vec_lcd = 0x48,
+    irq_vec_timer = 0x50,
+    irq_vec_serial = 0x58,
+    irq_vec_joypad = 0x60,
+};
+
 uint8_t read_byte_by_pc()
 {
     uint16_t *pc = reg(pc);
@@ -30,8 +39,63 @@ void cpu_write_ie(uint8_t value)
     cpu.interrupts.ie.val = value;
 }
 
+static void cpu_push_pc()
+{
+    uint16_t pc = reg_value(pc);
+    bus_write(--reg_value(sp), (pc >> 8) & 0xff);
+    bus_write(--reg_value(sp), pc & 0xff);
+}
+
+static void handle_interrupt(enum irq_vec irq)
+{
+    /*Aknowledge the interrupt*/
+    switch (irq)
+    {
+    case irq_vec_vblank:
+        cpu.interrupts.iflag.vblank = 0;
+        break;
+    case irq_vec_lcd:
+        cpu.interrupts.iflag.lcd = 0;
+        break;
+    case irq_vec_timer:
+        cpu.interrupts.iflag.timer = 0;
+        break;
+    case irq_vec_serial:
+        cpu.interrupts.iflag.serial = 0;
+        break;
+    case irq_vec_joypad:
+        cpu.interrupts.iflag.joypad = 0;
+        break;
+    default:
+        return;
+    }
+
+    /*Disable all interrupts*/
+    cpu.interrupts.ime = 0;
+
+    /*Save pc, then jump to irq_vector*/
+    cpu_push_pc();
+    reg_value(pc) = irq;
+
+    log_debug("handling interrupt: 0x%x", irq);
+}
+
 static void handle_interrupts()
 {
+    if (cpu.interrupts.ime == 0)
+        return;
+
+    /*Handle interrupt by priorities*/
+    if (cpu.interrupts.ie.vblank && cpu.interrupts.iflag.vblank)
+        handle_interrupt(irq_vec_vblank);
+    else if (cpu.interrupts.ie.lcd && cpu.interrupts.iflag.lcd)
+        handle_interrupt(irq_vec_lcd);
+    else if (cpu.interrupts.ie.timer && cpu.interrupts.iflag.timer)
+        handle_interrupt(irq_vec_timer);
+    else if (cpu.interrupts.ie.serial && cpu.interrupts.iflag.serial)
+        handle_interrupt(irq_vec_serial);
+    else if (cpu.interrupts.ie.joypad && cpu.interrupts.iflag.joypad)
+        handle_interrupt(irq_vec_joypad);
 }
 
 static void execute_instruction(uint8_t opcode)
@@ -62,6 +126,8 @@ int cpu_init()
 
     /*IME is unset by default.*/
     cpu.interrupts.ime = 0;
+    cpu.interrupts.iflag.val = 0;
+    cpu.interrupts.ie.val = 0;
 
     return 0;
 }

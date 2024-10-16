@@ -126,6 +126,6 @@ uint16_t read_word_by_pc();
     }
 
 #define carry_on_bit(bit, a, b) \
-    ((a) + (b) & (1 << (bit) + 1) - 1) < ((a) & (1 << (bit) + 1) - 1)
+    (((a) + (b) & (1 << (bit) + 1) - 1) < ((a) & (1 << (bit) + 1) - 1))
 
 #endif
