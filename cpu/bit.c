@@ -383,7 +383,7 @@ void opcode_cb_0x36(uint8_t opcode)
     uint8_t value = bus_read(reg_value(hl));
 
     uint8_t high = value & 0xf0;
-    value <= 4;
+    value <<= 4;
     value |= (high >> 4);
 
     reg_value(n_flag) = 0;
