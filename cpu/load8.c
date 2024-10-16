@@ -279,11 +279,11 @@ void opcode_0x3a(uint8_t opcode)
 register_opcode_table(0x3a);
 
 /**
- * LDH [n8], a
+ * LDH [a8], a
  * cycles: 3
  * bytes: 2
  */
-static void ldh_memn8_a(uint8_t opcode)
+static void ldh_mema8_a(uint8_t opcode)
 {
     uint16_t addr = 0xff00 + read_byte_by_pc();
     bus_write(addr, reg_value(a));
@@ -291,24 +291,24 @@ static void ldh_memn8_a(uint8_t opcode)
 
 void opcode_0xe0(uint8_t opcode)
 {
-    ldh_memn8_a(opcode);
+    ldh_mema8_a(opcode);
 }
 register_opcode_table(0xe0);
 
 /**
- * LDH a, [n8]
+ * LDH a, [a8]
  * cycles: 3
  * bytes: 2
  */
-static void ldh_a_memn8(uint8_t opcode)
+static void ldh_a_mema8(uint8_t opcode)
 {
-    uint8_t n8 = read_byte_by_pc();
-    reg_value(a) = bus_read(0xff00 + n8);
+    uint8_t offset = read_byte_by_pc();
+    reg_value(a) = bus_read(0xff00 + offset);
 }
 
 void opcode_0xf0(uint8_t opcode)
 {
-    ldh_a_memn8(opcode);
+    ldh_a_mema8(opcode);
 }
 register_opcode_table(0xf0);
 
@@ -347,11 +347,11 @@ void opcode_0xf2(uint8_t opcode)
 register_opcode_table(0xf2);
 
 /**
- * LD [n16], a
+ * LD [a16], a
  * cycles: 4
  * bytes: 3
  */
-static void ld_memn16_a(uint8_t opcode)
+static void ld_mema16_a(uint8_t opcode)
 {
     uint16_t addr = read_word_by_pc();
     bus_write(addr, reg_value(a));
@@ -359,7 +359,7 @@ static void ld_memn16_a(uint8_t opcode)
 
 void opcode_0xea(uint8_t opcode)
 {
-    ld_memn16_a(opcode);
+    ld_mema16_a(opcode);
 }
 register_opcode_table(0xea);
 
@@ -368,7 +368,7 @@ register_opcode_table(0xea);
  * cycles: 4
  * bytes: 3
  */
-static void ld_a_memn16(uint8_t opcode)
+static void ld_a_a16mem(uint8_t opcode)
 {
     uint16_t addr = read_word_by_pc();
     reg_value(a) = bus_read(addr);
@@ -376,6 +376,6 @@ static void ld_a_memn16(uint8_t opcode)
 
 void opcode_0xfa(uint8_t opcode)
 {
-    ld_a_memn16(opcode);
+    ld_a_a16mem(opcode);
 }
 register_opcode_table(0xfa);

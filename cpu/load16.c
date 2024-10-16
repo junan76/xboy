@@ -24,11 +24,11 @@ declare_ld_r16n16(0x21, hl);
 declare_ld_r16n16(0x31, hl);
 
 /**
- * LD [n16], sp
+ * LD [a16], sp
  * cycles: 5
  * bytes: 3
  */
-static void ld_memn16_sp(uint8_t opcode)
+static void ld_mema16_sp(uint8_t opcode)
 {
     uint16_t addr = read_word_by_pc();
     uint16_t sp = reg_value(sp);
@@ -38,7 +38,7 @@ static void ld_memn16_sp(uint8_t opcode)
 
 void opcode_0x08(uint8_t opcode)
 {
-    ld_memn16_sp(opcode);
+    ld_mema16_sp(opcode);
 }
 register_opcode_table(0x08);
 
