@@ -6,16 +6,17 @@
  * cycles: 1
  * bytes: 1
  */
-static void ld_r8_r8(uint8_t opcode, uint8_t *rd, uint8_t *rs)
+static uint8_t ld_r8_r8(uint8_t opcode, uint8_t *rd, uint8_t *rs)
 {
     *rd = *rs;
+    return cycles_table[opcode];
 }
 
-#define declare_ld_r8r8(_opcode, _rd, _rs)    \
-    void opcode_##_opcode(uint8_t opcode)     \
-    {                                         \
-        ld_r8_r8(opcode, reg(_rd), reg(_rs)); \
-    }                                         \
+#define declare_ld_r8r8(_opcode, _rd, _rs)           \
+    uint8_t opcode_##_opcode(uint8_t opcode)         \
+    {                                                \
+        return ld_r8_r8(opcode, reg(_rd), reg(_rs)); \
+    }                                                \
     register_opcode_table(_opcode)
 
 declare_ld_r8r8(0x40, b, b);
@@ -80,17 +81,18 @@ declare_ld_r8r8(0x7f, a, a);
  * bytes: 1
  */
 
-static void ld_memhl_r8(uint8_t opcode, uint8_t *rs)
+static uint8_t ld_memhl_r8(uint8_t opcode, uint8_t *rs)
 {
     uint16_t addr = reg_value(hl);
     bus_write(addr, *rs);
+    return cycles_table[opcode];
 }
 
-#define declare_ld_memhl_r8(_opcode, _rs) \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        ld_memhl_r8(opcode, reg(_rs));    \
-    }                                     \
+#define declare_ld_memhl_r8(_opcode, _rs)     \
+    uint8_t opcode_##_opcode(uint8_t opcode)  \
+    {                                         \
+        return ld_memhl_r8(opcode, reg(_rs)); \
+    }                                         \
     register_opcode_table(_opcode)
 
 declare_ld_memhl_r8(0x70, b);
@@ -106,15 +108,16 @@ declare_ld_memhl_r8(0x77, a);
  * cycles: 2
  * bytes: 1
  */
-static void ld_r8_memhl(uint8_t opcode, uint8_t *rd)
+static uint8_t ld_r8_memhl(uint8_t opcode, uint8_t *rd)
 {
     *rd = bus_read(reg_value(hl));
+    return cycles_table[opcode];
 }
-#define declare_ld_r8_memhl(_opcode, _rd) \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        ld_r8_memhl(opcode, reg(_rd));    \
-    }                                     \
+#define declare_ld_r8_memhl(_opcode, _rd)     \
+    uint8_t opcode_##_opcode(uint8_t opcode)  \
+    {                                         \
+        return ld_r8_memhl(opcode, reg(_rd)); \
+    }                                         \
     register_opcode_table(_opcode)
 
 declare_ld_r8_memhl(0x46, b);
@@ -130,17 +133,18 @@ declare_ld_r8_memhl(0x7e, a);
  * cycles: 2
  * bytes: 2
  */
-static void ld_r8n8(uint8_t opcode, uint8_t *rd)
+static uint8_t ld_r8n8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t value = read_byte_by_pc();
     *rd = value;
+    return cycles_table[opcode];
 }
 
-#define declare_ld_r8n8(_opcode, _rd)     \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        ld_r8n8(opcode, reg(_rd));        \
-    }                                     \
+#define declare_ld_r8n8(_opcode, _rd)        \
+    uint8_t opcode_##_opcode(uint8_t opcode) \
+    {                                        \
+        return ld_r8n8(opcode, reg(_rd));    \
+    }                                        \
     register_opcode_table(_opcode)
 
 declare_ld_r8n8(0x06, b);
@@ -157,16 +161,17 @@ declare_ld_r8n8(0x3e, a);
  * bytes: 2
  */
 
-static void ld_memhl_n8(uint8_t opcode)
+static uint8_t ld_memhl_n8(uint8_t opcode)
 {
     uint8_t value = read_byte_by_pc();
     uint16_t addr = reg_value(hl);
     bus_write(addr, value);
+    return cycles_table[opcode];
 }
 
-void opcode_0x36(uint8_t opcode)
+uint8_t opcode_0x36(uint8_t opcode)
 {
-    ld_memhl_n8(opcode);
+    return ld_memhl_n8(opcode);
 }
 register_opcode_table(0x36);
 
@@ -175,16 +180,17 @@ register_opcode_table(0x36);
  * cycles: 2
  * bytes: 1
  */
-static void ld_memr16_a(uint8_t opcode, uint16_t addr)
+static uint8_t ld_memr16_a(uint8_t opcode, uint16_t addr)
 {
     bus_write(addr, reg_value(a));
+    return cycles_table[opcode];
 }
 
-#define declare_ld_memr16_a(_opcode, _rd)    \
-    void opcode_##_opcode(uint8_t opcode)    \
-    {                                        \
-        ld_memr16_a(opcode, reg_value(_rd)); \
-    }                                        \
+#define declare_ld_memr16_a(_opcode, _rd)           \
+    uint8_t opcode_##_opcode(uint8_t opcode)        \
+    {                                               \
+        return ld_memr16_a(opcode, reg_value(_rd)); \
+    }                                               \
     register_opcode_table(_opcode)
 
 declare_ld_memr16_a(0x02, bc);
@@ -195,16 +201,17 @@ declare_ld_memr16_a(0x12, de);
  * cycles: 2
  * bytes: 1
  */
-static void ld_a_memr16(uint8_t opcode, uint16_t addr)
+static uint8_t ld_a_memr16(uint8_t opcode, uint16_t addr)
 {
     reg_value(a) = bus_read(addr);
+    return cycles_table[opcode];
 }
 
-#define declare_ld_a_memr16(_opcode, _rs)    \
-    void opcode_##_opcode(uint8_t opcode)    \
-    {                                        \
-        ld_a_memr16(opcode, reg_value(_rs)); \
-    }                                        \
+#define declare_ld_a_memr16(_opcode, _rs)           \
+    uint8_t opcode_##_opcode(uint8_t opcode)        \
+    {                                               \
+        return ld_a_memr16(opcode, reg_value(_rs)); \
+    }                                               \
     register_opcode_table(_opcode)
 
 declare_ld_a_memr16(0x0a, bc);
@@ -215,15 +222,16 @@ declare_ld_a_memr16(0x1a, de);
  * cycles: 2
  * bytes: 1
  */
-static void ldi_memhl_a(uint8_t opcode)
+static uint8_t ldi_memhl_a(uint8_t opcode)
 {
     bus_write(reg_value(hl), reg_value(a));
     reg_value(hl) += 1;
+    return cycles_table[opcode];
 }
 
-void opcode_0x22(uint8_t opcode)
+uint8_t opcode_0x22(uint8_t opcode)
 {
-    ldi_memhl_a(opcode);
+    return ldi_memhl_a(opcode);
 }
 register_opcode_table(0x22);
 
@@ -232,15 +240,16 @@ register_opcode_table(0x22);
  * cycles: 2
  * bytes: 1
  */
-static void ldd_memhl_a(uint8_t opcode)
+static uint8_t ldd_memhl_a(uint8_t opcode)
 {
     bus_write(reg_value(hl), reg_value(a));
     reg_value(hl) -= 1;
+    return cycles_table[opcode];
 }
 
-void opcode_0x32(uint8_t opcode)
+uint8_t opcode_0x32(uint8_t opcode)
 {
-    ldd_memhl_a(opcode);
+    return ldd_memhl_a(opcode);
 }
 register_opcode_table(0x32);
 
@@ -249,15 +258,16 @@ register_opcode_table(0x32);
  * cycles: 2
  * bytes: 1
  */
-static void ldi_a_memhl(uint8_t opcode)
+static uint8_t ldi_a_memhl(uint8_t opcode)
 {
     reg_value(a) = bus_read(reg_value(hl));
     reg_value(hl) += 1;
+    return cycles_table[opcode];
 }
 
-void opcode_0x2a(uint8_t opcode)
+uint8_t opcode_0x2a(uint8_t opcode)
 {
-    ldi_a_memhl(opcode);
+    return ldi_a_memhl(opcode);
 }
 register_opcode_table(0x2a);
 
@@ -266,15 +276,16 @@ register_opcode_table(0x2a);
  * cycles: 2
  * bytes: 1
  */
-static void ldd_a_memhl(uint8_t opcode)
+static uint8_t ldd_a_memhl(uint8_t opcode)
 {
     reg_value(a) = bus_read(reg_value(hl));
     reg_value(hl) -= 1;
+    return cycles_table[opcode];
 }
 
-void opcode_0x3a(uint8_t opcode)
+uint8_t opcode_0x3a(uint8_t opcode)
 {
-    ldd_a_memhl(opcode);
+    return ldd_a_memhl(opcode);
 }
 register_opcode_table(0x3a);
 
@@ -283,15 +294,16 @@ register_opcode_table(0x3a);
  * cycles: 3
  * bytes: 2
  */
-static void ldh_mema8_a(uint8_t opcode)
+static uint8_t ldh_mema8_a(uint8_t opcode)
 {
     uint16_t addr = 0xff00 + read_byte_by_pc();
     bus_write(addr, reg_value(a));
+    return cycles_table[opcode];
 }
 
-void opcode_0xe0(uint8_t opcode)
+uint8_t opcode_0xe0(uint8_t opcode)
 {
-    ldh_mema8_a(opcode);
+    return ldh_mema8_a(opcode);
 }
 register_opcode_table(0xe0);
 
@@ -300,15 +312,16 @@ register_opcode_table(0xe0);
  * cycles: 3
  * bytes: 2
  */
-static void ldh_a_mema8(uint8_t opcode)
+static uint8_t ldh_a_mema8(uint8_t opcode)
 {
     uint8_t offset = read_byte_by_pc();
     reg_value(a) = bus_read(0xff00 + offset);
+    return cycles_table[opcode];
 }
 
-void opcode_0xf0(uint8_t opcode)
+uint8_t opcode_0xf0(uint8_t opcode)
 {
-    ldh_a_mema8(opcode);
+    return ldh_a_mema8(opcode);
 }
 register_opcode_table(0xf0);
 
@@ -317,15 +330,16 @@ register_opcode_table(0xf0);
  * cycles: 2
  * bytes: 1
  */
-static void ldh_memc_a(uint8_t opcode)
+static uint8_t ldh_memc_a(uint8_t opcode)
 {
     uint16_t addr = 0xff00 + reg_value(c);
     bus_write(addr, reg_value(a));
+    return cycles_table[opcode];
 }
 
-void opcode_0xe2(uint8_t opcode)
+uint8_t opcode_0xe2(uint8_t opcode)
 {
-    ldh_memc_a(opcode);
+    return ldh_memc_a(opcode);
 }
 register_opcode_table(0xe2);
 
@@ -334,15 +348,16 @@ register_opcode_table(0xe2);
  * cycles: 2
  * bytes: 1
  */
-static void ldh_a_memc(uint8_t opcode)
+static uint8_t ldh_a_memc(uint8_t opcode)
 {
     uint16_t addr = 0xff00 + reg_value(c);
     reg_value(a) = bus_read(addr);
+    return cycles_table[opcode];
 }
 
-void opcode_0xf2(uint8_t opcode)
+uint8_t opcode_0xf2(uint8_t opcode)
 {
-    ldh_a_memc(opcode);
+    return ldh_a_memc(opcode);
 }
 register_opcode_table(0xf2);
 
@@ -351,15 +366,16 @@ register_opcode_table(0xf2);
  * cycles: 4
  * bytes: 3
  */
-static void ld_mema16_a(uint8_t opcode)
+static uint8_t ld_mema16_a(uint8_t opcode)
 {
     uint16_t addr = read_word_by_pc();
     bus_write(addr, reg_value(a));
+    return cycles_table[opcode];
 }
 
-void opcode_0xea(uint8_t opcode)
+uint8_t opcode_0xea(uint8_t opcode)
 {
-    ld_mema16_a(opcode);
+    return ld_mema16_a(opcode);
 }
 register_opcode_table(0xea);
 
@@ -368,14 +384,15 @@ register_opcode_table(0xea);
  * cycles: 4
  * bytes: 3
  */
-static void ld_a_a16mem(uint8_t opcode)
+static uint8_t ld_a_a16mem(uint8_t opcode)
 {
     uint16_t addr = read_word_by_pc();
     reg_value(a) = bus_read(addr);
+    return cycles_table[opcode];
 }
 
-void opcode_0xfa(uint8_t opcode)
+uint8_t opcode_0xfa(uint8_t opcode)
 {
-    ld_a_a16mem(opcode);
+    return ld_a_a16mem(opcode);
 }
 register_opcode_table(0xfa);

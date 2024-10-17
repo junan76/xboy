@@ -39,10 +39,11 @@ static uint8_t pop_stack()
  * cycles: 3
  * bytes: 2
  */
-void opcode_0x18(uint8_t opcode)
+uint8_t opcode_0x18(uint8_t opcode)
 {
     int8_t offset = read_byte_by_pc();
     reg_value(pc) += offset;
+    return cycles_table[opcode];
 }
 register_opcode_table(0x18);
 
@@ -51,7 +52,7 @@ register_opcode_table(0x18);
  * cycles: 3 taken / 2 untaken
  * bytes: 2
  */
-static void jr_cc_e8(uint8_t opcode, enum condition_code cc)
+static uint8_t jr_cc_e8(uint8_t opcode, enum condition_code cc)
 {
     uint8_t taken = 0;
     int8_t offset = read_byte_by_pc();
@@ -64,16 +65,16 @@ static void jr_cc_e8(uint8_t opcode, enum condition_code cc)
     if (taken)
     {
         reg_value(pc) += offset;
-        // TODO: return correct cycles when taken
+        return cycles_table[opcode] + 1;
     }
-    // TODO: return correct cycles when untaken
+    return cycles_table[opcode];
 }
 
-#define declare_jr_cc_e8(_opcode, _cc)    \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        jr_cc_e8(opcode, _cc);            \
-    }                                     \
+#define declare_jr_cc_e8(_opcode, _cc)       \
+    uint8_t opcode_##_opcode(uint8_t opcode) \
+    {                                        \
+        return jr_cc_e8(opcode, _cc);        \
+    }                                        \
     register_opcode_table(_opcode);
 
 declare_jr_cc_e8(0x20, cc_NZ);
@@ -86,9 +87,10 @@ declare_jr_cc_e8(0x38, cc_C);
  * cycles: 4
  * bytes: 3
  */
-void opcode_0xc3(uint8_t opcode)
+uint8_t opcode_0xc3(uint8_t opcode)
 {
     reg_value(pc) = read_word_by_pc();
+    return cycles_table[opcode];
 }
 register_opcode_table(0xc3);
 
@@ -97,7 +99,7 @@ register_opcode_table(0xc3);
  * cycles: 4 taken / 3 untaken
  * bytes: 3
  */
-static void jp_cc_n16(uint8_t opcode, enum condition_code cc)
+static uint8_t jp_cc_n16(uint8_t opcode, enum condition_code cc)
 {
     uint8_t taken = 0;
     uint16_t jpaddr = read_word_by_pc();
@@ -110,16 +112,16 @@ static void jp_cc_n16(uint8_t opcode, enum condition_code cc)
     if (taken)
     {
         reg_value(pc) = jpaddr;
-        // TODO: return correct cycles when taken
+        return cycles_table[opcode] + 1;
     }
-    // TODO: return correct cycles when untaken
+    return cycles_table[opcode];
 }
 
-#define declare_jp_cc_n16(_opcode, _cc)   \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        jp_cc_n16(opcode, _cc);           \
-    }                                     \
+#define declare_jp_cc_n16(_opcode, _cc)      \
+    uint8_t opcode_##_opcode(uint8_t opcode) \
+    {                                        \
+        return jp_cc_n16(opcode, _cc);       \
+    }                                        \
     register_opcode_table(_opcode);
 
 declare_jp_cc_n16(0xc2, cc_NZ);
@@ -132,12 +134,13 @@ declare_jp_cc_n16(0xda, cc_C);
  * cycles: 6
  * bytes: 3
  */
-void opcode_0xcd(uint8_t opcode)
+uint8_t opcode_0xcd(uint8_t opcode)
 {
     uint16_t call_addr = read_byte_by_pc();
     push_stack((reg_value(pc) >> 8) & 0xff);
     push_stack(reg_value(pc) & 0xff);
     reg_value(pc) = call_addr;
+    return cycles_table[opcode];
 }
 register_opcode_table(0xcd);
 
@@ -146,7 +149,7 @@ register_opcode_table(0xcd);
  * cycles: 6 taken / 3 untaken
  * bytes: 3
  */
-static void call_cc_n16(uint8_t opcode, enum condition_code cc)
+static uint8_t call_cc_n16(uint8_t opcode, enum condition_code cc)
 {
 
     uint8_t taken = 0;
@@ -162,16 +165,16 @@ static void call_cc_n16(uint8_t opcode, enum condition_code cc)
         push_stack((reg_value(pc) >> 8) & 0xff);
         push_stack(reg_value(pc) & 0xff);
         reg_value(pc) = call_addr;
-        // TODO: return correct cycles when taken
+        return cycles_table[opcode] + 3;
     }
-    // TODO: return correct cycles when untaken
+    return cycles_table[opcode];
 }
 
-#define declare_call_cc_n16(_opcode, _cc) \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        call_cc_n16(opcode, _cc);         \
-    }                                     \
+#define declare_call_cc_n16(_opcode, _cc)    \
+    uint8_t opcode_##_opcode(uint8_t opcode) \
+    {                                        \
+        return call_cc_n16(opcode, _cc);     \
+    }                                        \
     register_opcode_table(_opcode);
 
 declare_call_cc_n16(0xc4, cc_NZ);
@@ -184,9 +187,10 @@ declare_call_cc_n16(0xdc, cc_C);
  * cycles: 4
  * bytes: 1
  */
-void opcode_0xc9(uint8_t opcode)
+uint8_t opcode_0xc9(uint8_t opcode)
 {
     reg_value(pc) = pop_stack() | (pop_stack() << 8);
+    return cycles_table[opcode];
 }
 register_opcode_table(0xc9);
 
@@ -195,10 +199,11 @@ register_opcode_table(0xc9);
  * cycles: 4
  * bytes: 1
  */
-void opcode_0xd9(uint8_t opcode)
+uint8_t opcode_0xd9(uint8_t opcode)
 {
     reg_value(pc) = pop_stack() | (pop_stack() << 8);
     cpu.interrupts.ime = 1;
+    return cycles_table[opcode];
 }
 register_opcode_table(0xd9);
 
@@ -207,7 +212,7 @@ register_opcode_table(0xd9);
  * cycles: 5 taken / 2 untaken
  * bytes: 1
  */
-static void ret_cc(uint8_t opcode, enum condition_code cc)
+static uint8_t ret_cc(uint8_t opcode, enum condition_code cc)
 {
     uint8_t taken = 0;
 
@@ -219,26 +224,39 @@ static void ret_cc(uint8_t opcode, enum condition_code cc)
     if (taken)
     {
         reg_value(pc) = pop_stack() | (pop_stack() << 8);
-        // TODO: return correct cycles when taken
+        return cycles_table[opcode] + 3;
     }
-    // TODO: return correct cycles when untaken
+    return cycles_table[opcode];
 }
+
+#define declare_ret_cc(_opcode, _cc)         \
+    uint8_t opcode_##_opcode(uint8_t opcode) \
+    {                                        \
+        return ret_cc(opcode, _cc);          \
+    }                                        \
+    register_opcode_table(_opcode);
+
+declare_ret_cc(0xc0, cc_NZ);
+declare_ret_cc(0xc8, cc_Z);
+declare_ret_cc(0xd0, cc_NC);
+declare_ret_cc(0xd8, cc_C);
 
 /**
  * RST vec
  * cycles: 4
  * bytes: 1
  */
-static void rest_vec(uint8_t opcode, enum rst_vec vec)
+static uint8_t rest_vec(uint8_t opcode, enum rst_vec vec)
 {
     reg_value(pc) = vec;
+    return cycles_table[opcode];
 }
 
-#define declare_rest_vec(_opcode, _vec)   \
-    void opcode_##_opcode(uint8_t opcode) \
-    {                                     \
-        rest_vec(opcode, _vec);           \
-    }                                     \
+#define declare_rest_vec(_opcode, _vec)      \
+    uint8_t opcode_##_opcode(uint8_t opcode) \
+    {                                        \
+        return rest_vec(opcode, _vec);       \
+    }                                        \
     register_opcode_table(_opcode);
 
 declare_rest_vec(0xc7, rst0);

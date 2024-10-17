@@ -100,15 +100,18 @@ struct CPU
     } interrupts;
 
     uint8_t halted;
+    uint16_t mcycles;
 };
 
 extern struct CPU cpu;
 #define reg(r) &(cpu.regs.r)
 #define reg_value(r) (cpu.regs.r)
 
-typedef void (*opcode_fn)(uint8_t opcode);
+typedef uint8_t (*opcode_fn)(uint8_t opcode);
 extern opcode_fn opcode_table[256];
 extern opcode_fn opcode_cb_table[256];
+extern uint8_t cycles_table[256];
+extern uint8_t cycles_cb_table[256];
 
 uint8_t read_byte_by_pc();
 uint16_t read_word_by_pc();

@@ -98,10 +98,10 @@ static void handle_interrupts()
         handle_interrupt(irq_vec_joypad);
 }
 
-static void execute_instruction(uint8_t opcode)
+static uint8_t execute_instruction(uint8_t opcode)
 {
     opcode_fn fn = opcode_table[opcode];
-    fn(opcode);
+    return fn(opcode);
 }
 
 static void opcode_default(uint8_t opcode)
@@ -109,14 +109,17 @@ static void opcode_default(uint8_t opcode)
     log_err("unimplemented opcode: %x", opcode);
 }
 
-int cpu_step()
+uint8_t cpu_step()
 {
     handle_interrupts();
     if (cpu.halted)
         return 0;
 
     uint8_t opcode = read_byte_by_pc();
-    execute_instruction(opcode);
+    uint8_t cycles = execute_instruction(opcode);
+    cpu.mcycles += cycles;
+
+    return cycles;
 }
 
 int cpu_init()
@@ -128,6 +131,8 @@ int cpu_init()
     cpu.interrupts.ime = 0;
     cpu.interrupts.iflag.val = 0;
     cpu.interrupts.ie.val = 0;
+    cpu.halted = 0;
+    cpu.mcycles = 0;
 
     return 0;
 }

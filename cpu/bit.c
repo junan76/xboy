@@ -6,7 +6,7 @@
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void bit_u3_r8(uint8_t opcode, uint8_t *rs, uint8_t bit)
+static uint8_t bit_u3_r8(uint8_t opcode, uint8_t *rs, uint8_t bit)
 {
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 1;
@@ -15,13 +15,15 @@ static void bit_u3_r8(uint8_t opcode, uint8_t *rs, uint8_t bit)
         reg_value(z_flag) = 1;
     else
         reg_value(z_flag) = 0;
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_bit_u3_r8(_opcode, _rs, _bit) \
-    void opcode_cb_##_opcode(uint8_t opcode)  \
-    {                                         \
-        bit_u3_r8(opcode, reg(_rs), _bit);    \
-    }                                         \
+#define declare_bit_u3_r8(_opcode, _rs, _bit)     \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode)   \
+    {                                             \
+        return bit_u3_r8(opcode, reg(_rs), _bit); \
+    }                                             \
     register_opcode_cb_table(_opcode);
 
 declare_bit_u3_r8(0x40, b, 0);
@@ -92,7 +94,7 @@ declare_bit_u3_r8(0x7f, a, 7);
  * cycles: 3
  * bytes: 2(0xcb included)
  */
-static void bit_u3_memhl(uint8_t opcode, uint8_t bit)
+static uint8_t bit_u3_memhl(uint8_t opcode, uint8_t bit)
 {
     uint8_t value = bus_read(reg_value(hl));
 
@@ -103,13 +105,15 @@ static void bit_u3_memhl(uint8_t opcode, uint8_t bit)
         reg_value(z_flag) = 1;
     else
         reg_value(z_flag) = 0;
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_bit_u3_memhl(_opcode, _bit)  \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        bit_u3_memhl(opcode, _bit);          \
-    }                                        \
+#define declare_bit_u3_memhl(_opcode, _bit)     \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return bit_u3_memhl(opcode, _bit);      \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_bit_u3_memhl(0x46, 0);
@@ -126,16 +130,17 @@ declare_bit_u3_memhl(0x7e, 7);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void res_u3_r8(uint8_t opcode, uint8_t *rd, uint8_t bit)
+static uint8_t res_u3_r8(uint8_t opcode, uint8_t *rd, uint8_t bit)
 {
     *rd &= ~(1 << bit);
+    return cycles_cb_table[opcode];
 }
 
-#define declare_res_u3_r8(_opcode, _rd, _bit) \
-    void opcode_cb_##_opcode(uint8_t opcode)  \
-    {                                         \
-        res_u3_r8(opcode, reg(_rd), _bit);    \
-    }                                         \
+#define declare_res_u3_r8(_opcode, _rd, _bit)     \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode)   \
+    {                                             \
+        return res_u3_r8(opcode, reg(_rd), _bit); \
+    }                                             \
     register_opcode_cb_table(_opcode);
 
 declare_res_u3_r8(0x80, b, 0);
@@ -206,18 +211,19 @@ declare_res_u3_r8(0xbf, a, 7);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-static void res_u3_memhl(uint8_t opcode, uint8_t bit)
+static uint8_t res_u3_memhl(uint8_t opcode, uint8_t bit)
 {
     uint8_t value = bus_read(reg_value(hl));
     value &= ~(1 << bit);
     bus_write(reg_value(hl), value);
+    return cycles_cb_table[opcode];
 }
 
-#define declare_res_u3_memhl(_opcode, _bit)  \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        res_u3_memhl(opcode, _bit);          \
-    }                                        \
+#define declare_res_u3_memhl(_opcode, _bit)     \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return res_u3_memhl(opcode, _bit);      \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_res_u3_memhl(0x86, 0);
@@ -234,16 +240,17 @@ declare_res_u3_memhl(0xbe, 7);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void set_u3_r8(uint8_t opcode, uint8_t *rd, uint8_t bit)
+static uint8_t set_u3_r8(uint8_t opcode, uint8_t *rd, uint8_t bit)
 {
     *rd |= (1 << bit);
+    return cycles_cb_table[opcode];
 }
 
-#define declare_set_u3_r8(_opcode, _rd, _bit) \
-    void opcode_cb_##_opcode(uint8_t opcode)  \
-    {                                         \
-        set_u3_r8(opcode, reg(_rd), _bit);    \
-    }                                         \
+#define declare_set_u3_r8(_opcode, _rd, _bit)     \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode)   \
+    {                                             \
+        return set_u3_r8(opcode, reg(_rd), _bit); \
+    }                                             \
     register_opcode_cb_table(_opcode);
 
 declare_set_u3_r8(0xc0, b, 0);
@@ -314,18 +321,19 @@ declare_set_u3_r8(0xff, a, 7);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-static void set_u3_memhl(uint8_t opcode, uint8_t bit)
+static uint8_t set_u3_memhl(uint8_t opcode, uint8_t bit)
 {
     uint8_t value = bus_read(reg_value(hl));
     value |= (1 << bit);
     bus_write(reg_value(hl), value);
+    return cycles_cb_table[opcode];
 }
 
-#define declare_set_u3_memhl(_opcode, _bit)  \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        set_u3_memhl(opcode, _bit);          \
-    }                                        \
+#define declare_set_u3_memhl(_opcode, _bit)     \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return set_u3_memhl(opcode, _bit);      \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_set_u3_memhl(0xc6, 0);
@@ -342,7 +350,7 @@ declare_set_u3_memhl(0xfe, 7);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void swap_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t swap_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t high = (*rd) & 0xf0;
     *rd <<= 4;
@@ -352,13 +360,15 @@ static void swap_r8(uint8_t opcode, uint8_t *rd)
     reg_value(h_flag) = 0;
     reg_value(c_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_swap_r8(_opcode, _rd)        \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        swap_r8(opcode, reg(_rd));           \
-    }                                        \
+#define declare_swap_r8(_opcode, _rd)           \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return swap_r8(opcode, reg(_rd));       \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_swap_r8(0x30, b);
@@ -374,7 +384,7 @@ declare_swap_r8(0x37, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x36(uint8_t opcode)
+uint8_t opcode_cb_0x36(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
 
@@ -388,6 +398,7 @@ void opcode_cb_0x36(uint8_t opcode)
     reg_value(z_flag) = (value == 0);
 
     bus_write(reg_value(hl), value);
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x36);
 
@@ -398,7 +409,7 @@ register_opcode_cb_table(0x36);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void rl_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t rl_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit7 = ((*rd) & 0x80) >> 7;
     *rd <<= 1;
@@ -408,13 +419,15 @@ static void rl_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_rl_r8(_opcode, _rd)          \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        rl_r8(opcode, reg(_rd));             \
-    }                                        \
+#define declare_rl_r8(_opcode, _rd)             \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return rl_r8(opcode, reg(_rd));         \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_rl_r8(0x10, b);
@@ -430,7 +443,7 @@ declare_rl_r8(0x17, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x16(uint8_t opcode)
+uint8_t opcode_cb_0x16(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit7 = (value & 0x80) >> 7;
@@ -442,6 +455,7 @@ void opcode_cb_0x16(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value == 0);
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x16);
 
@@ -450,7 +464,7 @@ register_opcode_cb_table(0x16);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void rlc_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t rlc_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit7 = ((*rd) & 0x80) >> 7;
     *rd <<= 1;
@@ -460,12 +474,13 @@ static void rlc_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+    return cycles_cb_table[opcode];
 }
-#define declare_rlc_r8(_opcode, _rd)         \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        rlc_r8(opcode, reg(_rd));            \
-    }                                        \
+#define declare_rlc_r8(_opcode, _rd)            \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return rlc_r8(opcode, reg(_rd));        \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_rlc_r8(0x00, b);
@@ -481,7 +496,7 @@ declare_rlc_r8(0x07, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x06(uint8_t opcode)
+uint8_t opcode_cb_0x06(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit7 = (value & 0x80) >> 7;
@@ -493,6 +508,8 @@ void opcode_cb_0x06(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value == 0);
+
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x06);
 
@@ -501,7 +518,7 @@ register_opcode_cb_table(0x06);
  * cycles: 1
  * bytes: 1
  */
-void opcode_0x07(uint8_t opcode)
+uint8_t opcode_0x07(uint8_t opcode)
 {
     uint8_t bit7 = (reg_value(a) & 0x80) >> 7;
     reg_value(a) <<= 1;
@@ -511,6 +528,8 @@ void opcode_0x07(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = 0;
+
+    return cycles_table[opcode];
 }
 register_opcode_table(0x07);
 
@@ -519,7 +538,7 @@ register_opcode_table(0x07);
  * cycles: 1
  * bytes: 1
  */
-void opcode_0x17(uint8_t opcode)
+uint8_t opcode_0x17(uint8_t opcode)
 {
     uint8_t bit7 = (reg_value(a) & 0x80) >> 7;
     reg_value(a) <<= 1;
@@ -529,6 +548,8 @@ void opcode_0x17(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = 0;
+
+    return cycles_table[opcode];
 }
 register_opcode_table(0x17);
 
@@ -537,7 +558,7 @@ register_opcode_table(0x17);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void rr_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t rr_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit0 = ((*rd) & 0x01);
     *rd >>= 1;
@@ -547,13 +568,15 @@ static void rr_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_rr_r8(_opcode, _rd)          \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        rr_r8(opcode, reg(_rd));             \
-    }                                        \
+#define declare_rr_r8(_opcode, _rd)             \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return rr_r8(opcode, reg(_rd));         \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_rr_r8(0x18, b);
@@ -569,7 +592,7 @@ declare_rr_r8(0x1f, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x1e(uint8_t opcode)
+uint8_t opcode_cb_0x1e(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit0 = (value & 0x01);
@@ -581,6 +604,8 @@ void opcode_cb_0x1e(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value == 0);
+
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x1e);
 
@@ -589,7 +614,7 @@ register_opcode_cb_table(0x1e);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void rrc_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t rrc_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit0 = ((*rd) & 0x01);
     *rd >>= 1;
@@ -599,12 +624,14 @@ static void rrc_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
-#define declare_rrc_r8(_opcode, _rd)         \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        rrc_r8(opcode, reg(_rd));            \
-    }                                        \
+#define declare_rrc_r8(_opcode, _rd)            \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return rrc_r8(opcode, reg(_rd));        \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_rrc_r8(0x08, b);
@@ -620,7 +647,7 @@ declare_rrc_r8(0x0f, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x0e(uint8_t opcode)
+uint8_t opcode_cb_0x0e(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit0 = (value & 0x01);
@@ -632,6 +659,8 @@ void opcode_cb_0x0e(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value == 0);
+
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x0e);
 
@@ -640,7 +669,7 @@ register_opcode_cb_table(0x0e);
  * cycles: 1
  * bytes: 1
  */
-void opcode_0x0f(uint8_t opcode)
+uint8_t opcode_0x0f(uint8_t opcode)
 {
     uint8_t bit0 = (reg_value(a) & 0x01);
     reg_value(a) >>= 1;
@@ -650,6 +679,8 @@ void opcode_0x0f(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = 0;
+
+    return cycles_table[opcode];
 }
 register_opcode_table(0x0f);
 
@@ -658,7 +689,7 @@ register_opcode_table(0x0f);
  * cycles: 1
  * bytes: 1
  */
-void opcode_0x1f(uint8_t opcode)
+uint8_t opcode_0x1f(uint8_t opcode)
 {
     uint8_t bit0 = (reg_value(a) & 0x01);
     reg_value(a) >>= 1;
@@ -668,6 +699,8 @@ void opcode_0x1f(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = 0;
+
+    return cycles_table[opcode];
 }
 register_opcode_table(0x1f);
 
@@ -676,7 +709,7 @@ register_opcode_table(0x1f);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void sla_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t sla_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit7 = ((*rd) & 0x80) >> 7;
     *rd <<= 1;
@@ -686,13 +719,15 @@ static void sla_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_sla_r8(_opcode, _rd)         \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        sla_r8(opcode, reg(_rd));            \
-    }                                        \
+#define declare_sla_r8(_opcode, _rd)            \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return sla_r8(opcode, reg(_rd));        \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_sla_r8(0x20, b);
@@ -708,7 +743,7 @@ declare_sla_r8(0x27, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x26(uint8_t opcode)
+uint8_t opcode_cb_0x26(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit7 = (value & 0x80) >> 7;
@@ -720,6 +755,8 @@ void opcode_cb_0x26(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value == 0);
+
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x26);
 
@@ -728,7 +765,7 @@ register_opcode_cb_table(0x26);
  * cycless: 2
  * bytes: 2(0xcb included)
  */
-static void sra_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t sra_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit0 = ((*rd) & 0x01);
     uint8_t bit7 = ((*rd) & 0x80) >> 7;
@@ -743,13 +780,15 @@ static void sra_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_sra_r8(_opcode, _rd)         \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        sra_r8(opcode, reg(_rd));            \
-    }                                        \
+#define declare_sra_r8(_opcode, _rd)            \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return sra_r8(opcode, reg(_rd));        \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_sra_r8(0x28, b);
@@ -765,7 +804,7 @@ declare_sra_r8(0x2f, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x2e(uint8_t opcode)
+uint8_t opcode_cb_0x2e(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit0 = (value & 0x01);
@@ -783,6 +822,8 @@ void opcode_cb_0x2e(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value);
+
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x2e);
 
@@ -791,7 +832,7 @@ register_opcode_cb_table(0x2e);
  * cycles: 2
  * bytes: 2(0xcb included)
  */
-static void srl_r8(uint8_t opcode, uint8_t *rd)
+static uint8_t srl_r8(uint8_t opcode, uint8_t *rd)
 {
     uint8_t bit0 = ((*rd) & 0x01);
     *rd >>= 1;
@@ -801,13 +842,15 @@ static void srl_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (*rd == 0);
+
+    return cycles_cb_table[opcode];
 }
 
-#define declare_srl_r8(_opcode, _rd)         \
-    void opcode_cb_##_opcode(uint8_t opcode) \
-    {                                        \
-        srl_r8(opcode, reg(_rd));            \
-    }                                        \
+#define declare_srl_r8(_opcode, _rd)            \
+    uint8_t opcode_cb_##_opcode(uint8_t opcode) \
+    {                                           \
+        return srl_r8(opcode, reg(_rd));        \
+    }                                           \
     register_opcode_cb_table(_opcode);
 
 declare_srl_r8(0x38, b);
@@ -823,7 +866,7 @@ declare_srl_r8(0x3f, a);
  * cycles: 4
  * bytes: 2(0xcb included)
  */
-void opcode_cb_0x3e(uint8_t opcode)
+uint8_t opcode_cb_0x3e(uint8_t opcode)
 {
     uint8_t value = bus_read(reg_value(hl));
     uint8_t bit0 = (value & 0x01);
@@ -835,5 +878,7 @@ void opcode_cb_0x3e(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(z_flag) = (value == 0);
+
+    return cycles_cb_table[opcode];
 }
 register_opcode_cb_table(0x3e);
