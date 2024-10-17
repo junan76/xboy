@@ -351,11 +351,7 @@ static void swap_r8(uint8_t opcode, uint8_t *rd)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(c_flag) = 0;
-
-    if (*rd == 0)
-        reg_value(z_flag) = 1;
-    else
-        reg_value(z_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
 }
 
 #define declare_swap_r8(_opcode, _rd)        \
@@ -389,12 +385,455 @@ void opcode_cb_0x36(uint8_t opcode)
     reg_value(n_flag) = 0;
     reg_value(h_flag) = 0;
     reg_value(c_flag) = 0;
-
-    if (value == 0)
-        reg_value(z_flag) = 1;
-    else
-        reg_value(z_flag) = 0;
+    reg_value(z_flag) = (value == 0);
 
     bus_write(reg_value(hl), value);
 }
 register_opcode_cb_table(0x36);
+
+/*Bit shift operations*/
+
+/**
+ * RL r8
+ * cycles: 2
+ * bytes: 2(0xcb included)
+ */
+static void rl_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit7 = ((*rd) & 0x80) >> 7;
+    *rd <<= 1;
+    *rd |= reg_value(c_flag);
+    reg_value(c_flag) = bit7;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+
+#define declare_rl_r8(_opcode, _rd)          \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        rl_r8(opcode, reg(_rd));             \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_rl_r8(0x10, b);
+declare_rl_r8(0x11, c);
+declare_rl_r8(0x12, d);
+declare_rl_r8(0x13, e);
+declare_rl_r8(0x14, h);
+declare_rl_r8(0x15, l);
+declare_rl_r8(0x17, a);
+
+/**
+ * RL [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x16(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit7 = (value & 0x80) >> 7;
+    value <<= 1;
+    value |= reg_value(c_flag);
+    reg_value(c_flag) = bit7;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value == 0);
+}
+register_opcode_cb_table(0x16);
+
+/**
+ * RLC r8
+ * cycles: 2
+ * bytes: 2(0xcb included)
+ */
+static void rlc_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit7 = ((*rd) & 0x80) >> 7;
+    *rd <<= 1;
+    *rd |= bit7;
+    reg_value(c_flag) = bit7;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+#define declare_rlc_r8(_opcode, _rd)         \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        rlc_r8(opcode, reg(_rd));            \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_rlc_r8(0x00, b);
+declare_rlc_r8(0x01, c);
+declare_rlc_r8(0x02, d);
+declare_rlc_r8(0x03, e);
+declare_rlc_r8(0x04, h);
+declare_rlc_r8(0x05, l);
+declare_rlc_r8(0x07, a);
+
+/**
+ * RLC [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x06(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit7 = (value & 0x80) >> 7;
+    value <<= 1;
+    value |= bit7;
+    reg_value(c_flag) = bit7;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value == 0);
+}
+register_opcode_cb_table(0x06);
+
+/**
+ * RLCA
+ * cycles: 1
+ * bytes: 1
+ */
+void opcode_0x07(uint8_t opcode)
+{
+    uint8_t bit7 = (reg_value(a) & 0x80) >> 7;
+    reg_value(a) <<= 1;
+    reg_value(a) |= bit7;
+    reg_value(c_flag) = bit7;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = 0;
+}
+register_opcode_table(0x07);
+
+/**
+ * RLA
+ * cycles: 1
+ * bytes: 1
+ */
+void opcode_0x17(uint8_t opcode)
+{
+    uint8_t bit7 = (reg_value(a) & 0x80) >> 7;
+    reg_value(a) <<= 1;
+    reg_value(a) |= reg_value(c_flag);
+    reg_value(c_flag) = bit7;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = 0;
+}
+register_opcode_table(0x17);
+
+/**
+ * RR r8
+ * cycles: 2
+ * bytes: 2(0xcb included)
+ */
+static void rr_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit0 = ((*rd) & 0x01);
+    *rd >>= 1;
+    *rd |= (reg_value(c_flag) << 7);
+    reg_value(c_flag) = bit0;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+
+#define declare_rr_r8(_opcode, _rd)          \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        rr_r8(opcode, reg(_rd));             \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_rr_r8(0x18, b);
+declare_rr_r8(0x19, c);
+declare_rr_r8(0x1a, d);
+declare_rr_r8(0x1b, e);
+declare_rr_r8(0x1c, h);
+declare_rr_r8(0x1d, l);
+declare_rr_r8(0x1f, a);
+
+/**
+ * RR [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x1e(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit0 = (value & 0x01);
+    value >>= 1;
+    value |= (reg_value(c_flag) << 7);
+    reg_value(c_flag) = bit0;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value == 0);
+}
+register_opcode_cb_table(0x1e);
+
+/**
+ * RRC r8
+ * cycles: 2
+ * bytes: 2(0xcb included)
+ */
+static void rrc_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit0 = ((*rd) & 0x01);
+    *rd >>= 1;
+    *rd |= (bit0 << 7);
+    reg_value(c_flag) = bit0;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+#define declare_rrc_r8(_opcode, _rd)         \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        rrc_r8(opcode, reg(_rd));            \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_rrc_r8(0x08, b);
+declare_rrc_r8(0x09, c);
+declare_rrc_r8(0x0a, d);
+declare_rrc_r8(0x0b, e);
+declare_rrc_r8(0x0c, h);
+declare_rrc_r8(0x0d, l);
+declare_rrc_r8(0x0f, a);
+
+/**
+ * RRC [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x0e(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit0 = (value & 0x01);
+    value >>= 1;
+    value |= (bit0 << 7);
+    reg_value(c_flag) = bit0;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value == 0);
+}
+register_opcode_cb_table(0x0e);
+
+/**
+ * RRCA
+ * cycles: 1
+ * bytes: 1
+ */
+void opcode_0x0f(uint8_t opcode)
+{
+    uint8_t bit0 = (reg_value(a) & 0x01);
+    reg_value(a) >>= 1;
+    reg_value(a) |= (bit0 << 7);
+    reg_value(c_flag) = bit0;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = 0;
+}
+register_opcode_table(0x0f);
+
+/**
+ * RRA
+ * cycles: 1
+ * bytes: 1
+ */
+void opcode_0x1f(uint8_t opcode)
+{
+    uint8_t bit0 = (reg_value(a) & 0x01);
+    reg_value(a) >>= 1;
+    reg_value(a) |= (reg_value(c_flag) << 7);
+    reg_value(c_flag) = bit0;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = 0;
+}
+register_opcode_table(0x1f);
+
+/**
+ * SLA r8
+ * cycles: 2
+ * bytes: 2(0xcb included)
+ */
+static void sla_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit7 = ((*rd) & 0x80) >> 7;
+    *rd <<= 1;
+    *rd &= 0xfe;
+    reg_value(c_flag) = bit7;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+
+#define declare_sla_r8(_opcode, _rd)         \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        sla_r8(opcode, reg(_rd));            \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_sla_r8(0x20, b);
+declare_sla_r8(0x21, c);
+declare_sla_r8(0x22, d);
+declare_sla_r8(0x23, e);
+declare_sla_r8(0x24, h);
+declare_sla_r8(0x25, l);
+declare_sla_r8(0x27, a);
+
+/**
+ * SLA [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x26(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit7 = (value & 0x80) >> 7;
+    value <<= 1;
+    value &= 0xfe;
+    reg_value(c_flag) = bit7;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value == 0);
+}
+register_opcode_cb_table(0x26);
+
+/**
+ * SRA r8
+ * cycless: 2
+ * bytes: 2(0xcb included)
+ */
+static void sra_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit0 = ((*rd) & 0x01);
+    uint8_t bit7 = ((*rd) & 0x80) >> 7;
+
+    *rd >>= 1;
+    if (bit7)
+        *rd |= 0x80;
+    else
+        *rd &= 0x7f;
+
+    reg_value(c_flag) = bit0;
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+
+#define declare_sra_r8(_opcode, _rd)         \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        sra_r8(opcode, reg(_rd));            \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_sra_r8(0x28, b);
+declare_sra_r8(0x29, c);
+declare_sra_r8(0x2a, d);
+declare_sra_r8(0x2b, e);
+declare_sra_r8(0x2c, h);
+declare_sra_r8(0x2d, l);
+declare_sra_r8(0x2f, a);
+
+/**
+ * SRA [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x2e(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit0 = (value & 0x01);
+    uint8_t bit7 = (value & 0x80) >> 7;
+
+    value >>= 1;
+    if (bit7)
+        value |= 0x80;
+    else
+        value &= 0x7f;
+
+    reg_value(c_flag) = bit0;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value);
+}
+register_opcode_cb_table(0x2e);
+
+/**
+ * SRL r8
+ * cycles: 2
+ * bytes: 2(0xcb included)
+ */
+static void srl_r8(uint8_t opcode, uint8_t *rd)
+{
+    uint8_t bit0 = ((*rd) & 0x01);
+    *rd >>= 1;
+    *rd &= 0x7f;
+    reg_value(c_flag) = bit0;
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (*rd == 0);
+}
+
+#define declare_srl_r8(_opcode, _rd)         \
+    void opcode_cb_##_opcode(uint8_t opcode) \
+    {                                        \
+        srl_r8(opcode, reg(_rd));            \
+    }                                        \
+    register_opcode_cb_table(_opcode);
+
+declare_srl_r8(0x38, b);
+declare_srl_r8(0x39, c);
+declare_srl_r8(0x3a, d);
+declare_srl_r8(0x3b, e);
+declare_srl_r8(0x3c, h);
+declare_srl_r8(0x3d, l);
+declare_srl_r8(0x3f, a);
+
+/**
+ * SRL [hl]
+ * cycles: 4
+ * bytes: 2(0xcb included)
+ */
+void opcode_cb_0x3e(uint8_t opcode)
+{
+    uint8_t value = bus_read(reg_value(hl));
+    uint8_t bit0 = (value & 0x01);
+    value >>= 1;
+    value &= 0x7f;
+    reg_value(c_flag) = bit0;
+    bus_write(reg_value(hl), value);
+
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(z_flag) = (value == 0);
+}
+register_opcode_cb_table(0x3e);
