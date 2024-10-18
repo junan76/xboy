@@ -710,5 +710,6 @@ uint8_t opcode_0x37(uint8_t opcode)
     reg_value(c_flag) = 1;
     return cycles_table[opcode];
 }
+register_opcode_table(0x37);
 
 // TODO: DAA

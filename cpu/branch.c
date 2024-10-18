@@ -130,6 +130,18 @@ declare_jp_cc_n16(0xd2, cc_NC);
 declare_jp_cc_n16(0xda, cc_C);
 
 /**
+ * JP hl
+ * cycles: 1
+ * bytes: 1
+ */
+uint8_t opcode_0xe9(uint8_t opcode)
+{
+    reg_value(pc) = reg_value(hl);
+    return cycles_table[opcode];
+}
+register_opcode_table(0xe9);
+
+/**
  * CALL n16
  * cycles: 6
  * bytes: 3
@@ -203,6 +215,7 @@ uint8_t opcode_0xd9(uint8_t opcode)
 {
     reg_value(pc) = pop_stack() | (pop_stack() << 8);
     cpu.interrupts.ime = 1;
+    cpu.interrupts.in_irq = 0;
     return cycles_table[opcode];
 }
 register_opcode_table(0xd9);

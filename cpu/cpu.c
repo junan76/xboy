@@ -72,6 +72,10 @@ static void handle_interrupt(enum irq_vec irq)
 
     /*Disable all interrupts*/
     cpu.interrupts.ime = 0;
+    /*"STOP" instruction has different behaviors depends on the in_irq flag*/
+    cpu.interrupts.in_irq = 1;
+    /*Resume the cpu from halt mode*/
+    cpu.halted = 0;
 
     /*Save pc, then jump to irq_vector*/
     cpu_push_pc();
@@ -112,14 +116,26 @@ static void opcode_default(uint8_t opcode)
 uint8_t cpu_step()
 {
     handle_interrupts();
+
     if (cpu.halted)
-        return 0;
+    {
+        if ((cpu.interrupts.ie.val & 0x1f) == 0)
+            return 1;
+        else
+            cpu.halted = 0;
+    }
 
     uint8_t opcode = read_byte_by_pc();
     uint8_t cycles = execute_instruction(opcode);
     cpu.mcycles += cycles;
 
     return cycles;
+}
+
+static uint8_t opcode_hole(uint8_t opcode)
+{
+    log_err("CPU panic: opcode 0x%x", opcode);
+    return 0;
 }
 
 int cpu_init()
@@ -133,6 +149,11 @@ int cpu_init()
     cpu.interrupts.ie.val = 0;
     cpu.halted = 0;
     cpu.mcycles = 0;
+
+    /*Init opcode holes*/
+    uint8_t opcode_holes[] = {0xd3, 0xe3, 0xe4, 0xf4, 0xdb, 0xeb, 0xec, 0xfc, 0xdd, 0xed, 0xfd};
+    for (int i = 0; i < sizeof(opcode_holes) / sizeof(opcode_holes[0]); i++)
+        opcode_table[opcode_holes[i]] = opcode_hole;
 
     return 0;
 }

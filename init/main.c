@@ -53,8 +53,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    int n = 1;
-    while (n--)
+    while (1)
     {
         cpu_step();
     }

@@ -22,12 +22,12 @@ register_opcode_table(0x00);
 /**
  * STOP n8
  * cycles: 1
- * bytes: 2
+ * bytes: 2/1(if in_irq is true)
  */
 uint8_t opcode_0x10(uint8_t opcode)
 {
-    read_byte_by_pc();
-    // TODO: anything else?
+    if (cpu.interrupts.in_irq == 0)
+        read_byte_by_pc();
     return cycles_table[opcode];
 }
 register_opcode_table(0x10);
@@ -39,7 +39,10 @@ register_opcode_table(0x10);
  */
 uint8_t opcode_0x76(uint8_t opcode)
 {
-    cpu.halted = 1;
+    if (cpu.interrupts.ime)
+        cpu.halted = 1;
+    else if (cpu.interrupts.iflag.val & 0x1f)
+        cpu.halted = 0;
     return cycles_table[opcode];
 }
 register_opcode_table(0x76);

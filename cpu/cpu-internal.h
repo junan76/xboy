@@ -15,11 +15,11 @@ struct registers
                 uint8_t f;
                 struct
                 {
-                    int __padding : 4;
-                    int c_flag : 1;
-                    int h_flag : 1;
-                    int n_flag : 1;
-                    int z_flag : 1;
+                    uint8_t __padding : 4;
+                    uint8_t c_flag : 1;
+                    uint8_t h_flag : 1;
+                    uint8_t n_flag : 1;
+                    uint8_t z_flag : 1;
                 };
             };
             uint8_t a;
@@ -97,6 +97,8 @@ struct CPU
                 uint8_t joypad : 1;
             };
         } iflag;
+
+        uint8_t in_irq;
     } interrupts;
 
     uint8_t halted;
