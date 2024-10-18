@@ -604,7 +604,7 @@ declare_inc_r8(0x3c, a);
 /**
  * INC [hl]
  * cycles: 3
- * bytess: 1
+ * bytes: 1
  */
 uint8_t opcode_0x34(uint8_t opcode)
 {
@@ -652,7 +652,7 @@ declare_dec_r8(0x3d, a);
 
 /**
  * DEC [hl]
- * cycless: 3
+ * cycles: 3
  * bytes: 1
  */
 uint8_t opcode_0x35(uint8_t opcode)
@@ -685,7 +685,7 @@ register_opcode_table(0x2f);
 
 /**
  * CCF
- * cycless: 1
+ * cycles: 1
  * bytes: 1
  */
 uint8_t opcode_0x3f(uint8_t opcode)
@@ -697,3 +697,18 @@ uint8_t opcode_0x3f(uint8_t opcode)
     return cycles_table[opcode];
 }
 register_opcode_table(0x3f);
+
+/**
+ * SCF
+ * cycles: 1
+ * bytes: 1
+ */
+uint8_t opcode_0x37(uint8_t opcode)
+{
+    reg_value(n_flag) = 0;
+    reg_value(h_flag) = 0;
+    reg_value(c_flag) = 1;
+    return cycles_table[opcode];
+}
+
+// TODO: DAA
