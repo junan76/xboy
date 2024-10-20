@@ -5,6 +5,7 @@ add_executable(xboy init/main.c)
 add_subdirectory(cart)
 add_subdirectory(cpu)
 add_subdirectory(bus)
+add_subdirectory(ppu)
 add_subdirectory(utils)
 
-target_link_libraries(xboy PRIVATE cart cpu bus utils)
+target_link_libraries(xboy PRIVATE cart cpu bus ppu utils)
