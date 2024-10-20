@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#define MCYCLES_PER_LINE 114
 #define MCYCLES_OAM_SCAN_MODE 20
 #define MCYCLES_DRAWING_MODE 43
 #define MCYCLES_HBLANK_MODE 51
@@ -10,16 +11,16 @@
 
 enum ppu_mode
 {
-    oam_scan_mode, /*mode2*/
-    drawing_mode,  /*mode3*/
     hblank_mode,   /*mode0*/
     vblank_mode,   /*mode1*/
+    oam_scan_mode, /*mode2*/
+    drawing_mode,  /*mode3*/
 };
 
 struct PPU
 {
-    uint8_t vram[8 * 1024];
-    uint8_t oam[160];
+    uint8_t *vram;
+    uint8_t *oam;
     enum ppu_mode mode;
     uint16_t mcycles;
 
@@ -78,5 +79,8 @@ struct PPU
 };
 
 extern struct PPU ppu;
+
+void render_update_scanline(uint8_t ly);
+void render_update_screen();
 
 #endif

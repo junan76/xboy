@@ -132,6 +132,12 @@ uint8_t cpu_step()
     return cycles;
 }
 
+void cpu_pending_interrupt(enum interrupt_source int_source)
+{
+    int_source &= 0x1f;
+    cpu.interrupts.iflag.val = int_source;
+}
+
 static uint8_t opcode_hole(uint8_t opcode)
 {
     log_err("CPU panic: opcode 0x%x", opcode);
